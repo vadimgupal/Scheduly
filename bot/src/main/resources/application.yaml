@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: Scheduly
+
+app:
+  telegram-token: ${TOKEN}

@@ -1,4 +1,4 @@
-package Commands;
+package bot.Commands;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendMessage;

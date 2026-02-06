@@ -1,4 +1,4 @@
-package Commands;
+package bot.Commands;
 
 public interface MessageHandler<T> {
     String name();

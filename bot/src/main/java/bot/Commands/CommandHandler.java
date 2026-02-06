@@ -1,4 +1,4 @@
-package Commands;
+package bot.Commands;
 
 public interface CommandHandler<T> extends MessageHandler<T> {
 

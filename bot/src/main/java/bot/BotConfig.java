@@ -1,4 +1,4 @@
-package backend.academy.hotelroomreservation;
+package bot;
 
 import jakarta.validation.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;

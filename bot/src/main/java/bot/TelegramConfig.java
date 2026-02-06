@@ -1,4 +1,4 @@
-package backend.academy.hotelroomreservation;
+package bot;
 
 import com.pengrad.telegrambot.TelegramBot;
 import org.springframework.beans.factory.annotation.Autowired;

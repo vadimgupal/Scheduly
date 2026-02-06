@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: Core
+
+  liquibase:
+    enabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  datasource:
+    url: jdbc:postgresql://localhost:5435/scrapper
+    username: postgres
+    password: postgres
+
+server:
+  port: 8081

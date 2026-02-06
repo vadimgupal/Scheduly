@@ -19,6 +19,7 @@
 
     <modules>
         <module>bot</module>
+        <module>core</module>
     </modules>
 
     <properties>

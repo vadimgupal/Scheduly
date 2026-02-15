@@ -1,6 +1,7 @@
 package bot;
 
-import bot.Commands.MessageHandler;
+import bot.commands.MessageHandler;
+import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
@@ -15,9 +16,9 @@ import java.util.List;
 public class TgService {
     private TelegramBot bot;
 
-    List<MessageHandler<?>> messageHandlers;
+    List<MessageHandler> messageHandlers;
 
-    public TgService(TelegramBot bot, List<MessageHandler<?>> messageHandlers) {
+    public TgService(TelegramBot bot, List<MessageHandler> messageHandlers) {
         this.bot = bot;
         this.messageHandlers = messageHandlers;
     }
@@ -26,12 +27,22 @@ public class TgService {
     public void sendMessage() {
         bot.setUpdatesListener(updates -> {
             for(Update update : updates) {
-                long chatId = update.message().chat().id();
-                String message = update.message().text();
-                log.info("Message received: " + message + " from " + chatId);
-                for(MessageHandler<?> messageHandler : messageHandlers) {
-                    if(messageHandler.shouldBeHandled(message)) {
-                        messageHandler.handle(chatId, message);
+                var msg = update.message();
+                if (msg == null || msg.text() == null) continue;
+                long chatId = msg.chat().id();
+                String text = msg.text();
+
+                String username = null;
+                if(msg.from() != null) {
+                    username = msg.from().username();
+                }
+
+                UserMessage userMessage = new UserMessage(chatId, username, text);
+                log.info("Message '{}' from chatId={}", text, chatId);
+
+                for (MessageHandler messageHandler : messageHandlers) {
+                    if(messageHandler.shouldBeHandled(userMessage)) {
+                        messageHandler.handle(userMessage);
                         break;
                     }
                 }

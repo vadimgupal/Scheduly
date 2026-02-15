@@ -1,4 +1,4 @@
-package bot;
+package bot.configs;
 
 import jakarta.validation.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;

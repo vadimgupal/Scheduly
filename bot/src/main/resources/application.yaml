@@ -4,3 +4,6 @@ spring:
 
 app:
   telegram-token: ${TOKEN}
+
+server:
+  port: 8080

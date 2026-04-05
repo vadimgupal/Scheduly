@@ -2,8 +2,6 @@ package bot.commands;
 
 import bot.dto.UserMessage;
 
-import java.security.NoSuchAlgorithmException;
-
 public interface MessageHandler {
     String name();
 

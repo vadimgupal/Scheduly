@@ -7,14 +7,12 @@ import core.google.AccessTokenStore;
 import core.google.GoogleOAuthService;
 import core.google.OAuthStateStore;
 import core.jpa.*;
+import core.notification.NotificationBot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -26,6 +24,7 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
+@RequestMapping("/auth")
 public class AuthController {
     private WebClient webClient;
     private GoogleOAuthService googleOAuthService;
@@ -33,27 +32,27 @@ public class AuthController {
     private AccessTokenStore accessTokenStore;
     private CoreConfig config;
     private JPAServise jpa;
-    private WebClient botWebClient;
+    private NotificationBot notificationBot;
 
     public AuthController(
             @Qualifier("commonWebClient") WebClient webClient,
-            @Qualifier("botWebClient") WebClient botWebClient,
             GoogleOAuthService googleOAuthService,
             OAuthStateStore stateStore,
             AccessTokenStore accessTokenStore,
             CoreConfig config,
-            JPAServise jpa
+            JPAServise jpa,
+            NotificationBot notificationBot
     ) {
         this.webClient = webClient;
-        this.botWebClient = botWebClient;
         this.googleOAuthService = googleOAuthService;
         this.stateStore = stateStore;
         this.accessTokenStore = accessTokenStore;
         this.config = config;
         this.jpa = jpa;
+        this.notificationBot = notificationBot;
     }
 
-    @GetMapping("/google/auth")
+    @GetMapping("/google/callback")
     public ResponseEntity<?> oauthCallback(@RequestParam(required = false) String code,
                                            @RequestParam String state,
                                            @RequestParam(required = false) String error) {
@@ -77,7 +76,7 @@ public class AuthController {
         try {
             user = jpa.findUserByChatId(chatId);
         } catch (Exception e) {
-            notifyBot(chatId, "Не нашёл пользователя. Напиши /start ещё раз.");
+            notificationBot.notifyBot(chatId, "Не нашёл пользователя. Напиши /start ещё раз.");
             return ResponseEntity.status(400).body("User not found");
         }
 
@@ -86,7 +85,7 @@ public class AuthController {
         try {
             tokens = exchangeCodeForTokens(code);
         } catch (TokenExchangeException e) {
-            notifyBot(chatId, "Ошибка получения токена Google: " + e.getMessage());
+            notificationBot.notifyBot(chatId, "Ошибка получения токена Google: " + e.getMessage());
             return ResponseEntity.status(400).body("Token exchange failed. Go back to Telegram.");
         }
 
@@ -98,18 +97,18 @@ public class AuthController {
         // refresh_token может быть null — это норм
         if (tokens.refreshToken() != null && !tokens.refreshToken().isBlank()) {
             jpa.saveOrUpdateToken(user.getId(), tokens.refreshToken());
-            notifyBot(chatId, "✅ Авторизация Google завершена. Можно пользоваться календарём.");
+            notificationBot.notifyBot(chatId, "✅ Авторизация Google завершена. Можно пользоваться календарём.");
             return ResponseEntity.ok("OK, you can close this tab.");
         }
 
         // refresh не пришёл — пробуем взять из БД
         if (jpa.findTokenOptional(user.getId()).isPresent()) {
-            notifyBot(chatId, "✅ Авторизация обновлена (использую ранее сохранённый refresh token).");
+            notificationBot.notifyBot(chatId, "✅ Авторизация обновлена (использую ранее сохранённый refresh token).");
             return ResponseEntity.ok("OK, you can close this tab.");
         }
 
         // и в БД нет — значит оффлайн-доступ не получен
-        notifyBot(chatId,
+        notificationBot.notifyBot(chatId,
                 "⚠️ Google не выдал refresh token, и в базе его нет.\n" +
                         "Нажми /start и авторизуйся ещё раз.\n" +
                         "Если повторяется — удали доступ бота в аккаунте Google и повтори."
@@ -145,23 +144,6 @@ public class AuthController {
         }
     }
 
-    private void notifyBot(long chatId, String text) {
-        try {
-            botWebClient.post()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/notify")
-                            .queryParam("chatId", chatId)
-                            .build())
-                    .contentType(MediaType.TEXT_PLAIN)
-                    .bodyValue(text)
-                    .retrieve()
-                    .toBodilessEntity()
-                    .block();
-        } catch (Exception e) {
-            log.warn("Failed to notify bot: {}", e.getMessage(), e);
-        }
-    }
-
     private String trim(String s) {
         if (s == null) return "";
         s = s.strip();
@@ -169,7 +151,7 @@ public class AuthController {
         return s.substring(0, 800) + "...";
     }
 
-    @PostMapping("/auth")
+    @PostMapping("/google/url")
     public ResponseEntity<String> getAuthUri(@RequestParam long chatId, @RequestParam String username) throws NoSuchAlgorithmException {
         String url = googleOAuthService.buildAuthUrl(chatId);
         jpa.saveOrUpdateUser(chatId, username);

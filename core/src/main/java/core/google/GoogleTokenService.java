@@ -5,6 +5,8 @@ import core.DTO.TokenExchangeException;
 import core.configs.CoreConfig;
 import core.jpa.JPAServise;
 import core.jpa.Token;
+import core.notification.NotificationBot;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -16,24 +18,49 @@ import java.time.Duration;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class GoogleTokenService {
     private WebClient webClient;
     private AccessTokenStore tokenStore;
     private CoreConfig cfg;
-    private JPAServise jpaServise;
+    private JPAServise jpa;
+    private NotificationBot notificationBot;
 
     public GoogleTokenService(@Qualifier("commonWebClient") WebClient webClient,
                               AccessTokenStore tokenStore,
                               CoreConfig cfg,
-                              JPAServise jpaServise) {
+                              JPAServise jpaServise,
+                              NotificationBot notificationBot) {
         this.webClient = webClient;
         this.tokenStore = tokenStore;
         this.cfg = cfg;
-        this.jpaServise = jpaServise;
+        this.jpa = jpaServise;
+        this.notificationBot = notificationBot;
     }
 
-    public String getAccessToken(long userId) {
-        return tokenStore.get(Long.toString(userId)).orElseGet(()->requestForToken(userId));
+    public String getAccessTokenByUserId(long userId) {
+        return tokenStore.get(Long.toString(userId)).orElseGet(() -> requestForToken(userId));
+    }
+
+    public String getAccessTokenByChatId(long chatId) {
+        long userId = jpa.findUserByChatId(chatId).getId();
+        try {
+            return getAccessTokenByUserId(userId);
+        } catch (TokenExchangeException e) {
+            if (e.isInvalidGrant()) {
+                log.warn("Refresh token invalid_grant for userId={} chatId={}. Clearing token and asking reauth.", userId, chatId);
+
+                // 1) удаляем refresh token из БД, чтобы не падать бесконечно
+                jpa.deleteTokenByUserId(userId);
+
+                // 2) уведомляем бота
+                notificationBot.notifyBot(chatId,
+                        "🔒 Доступ к Google истёк или был отозван.\n" +
+                                "Нажми /start и пройди авторизацию заново."
+                );
+            }
+            throw e; // пусть контроллер решает какой статус вернуть
+        }
     }
 
     private String requestForToken(long userId) {
@@ -49,10 +76,18 @@ public class GoogleTokenService {
                 .onStatus(st -> st.is4xxClientError() || st.is5xxServerError(),
                         resp -> resp.bodyToMono(String.class)
                                 .defaultIfEmpty("<empty body>")
-                                .flatMap(body -> Mono.error(new TokenExchangeException(
-                                        "status=" + resp.statusCode() +
-                                                ", body=" + trim(body)
-                                )))
+                                .flatMap(body -> {
+                                    boolean invalidGrant =
+                                            body.contains("invalid_grant") ||
+                                            body.contains("Token has been expired");
+                                    return Mono.error(
+                                            new TokenExchangeException(
+                                                    "status=" + resp.statusCode() + ", body=" + trim(body),
+                                                    invalidGrant
+                                            )
+                                    );
+                                        }
+                                )
                 )
                 .bodyToMono(RefreshTokenResponse.class)
                 .block();
@@ -74,7 +109,7 @@ public class GoogleTokenService {
     }
 
     private String getRefreshToken(long userId) {
-        Optional<Token> res = jpaServise.findTokenOptional(userId);
+        Optional<Token> res = jpa.findTokenOptional(userId);
         return res.orElseThrow(() -> new IllegalStateException("Could not find token"))
                 .getRefreshToken();
     }

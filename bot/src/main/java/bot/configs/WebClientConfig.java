@@ -10,10 +10,11 @@ import java.time.Duration;
 
 @Configuration
 public class WebClientConfig {
-    @Bean
+    @Bean(name = "coreWebClient")
     public WebClient getWebClient() {
-        HttpClient httpClient = HttpClient.create().responseTimeout(Duration.ofMillis(1000));
+        HttpClient httpClient = HttpClient.create().responseTimeout(Duration.ofSeconds(5));
         return WebClient.builder()
+                .baseUrl("http://localhost:8081")
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
     }

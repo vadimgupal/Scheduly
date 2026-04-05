@@ -10,14 +10,14 @@ import java.time.Duration;
 
 @Configuration
 public class WebClientConfig {
-    @Bean("commonWebClient")
+    @Bean(name = "commonWebClient")
     public WebClient getWebClient() {
-        HttpClient httpClient = HttpClient.create().responseTimeout(Duration.ofMillis(1000));
+        HttpClient httpClient = HttpClient.create().responseTimeout(Duration.ofSeconds(5));
         return WebClient.builder().clientConnector(new ReactorClientHttpConnector(httpClient)).build();
     }
     @Bean(name = "botWebClient")
     public WebClient getBotWebClient() {
-        HttpClient httpClient = HttpClient.create().responseTimeout(Duration.ofMillis(1000));
+        HttpClient httpClient = HttpClient.create().responseTimeout(Duration.ofSeconds(5));
         return WebClient.builder()
                 .baseUrl("http://localhost:8080")
                 .clientConnector(new ReactorClientHttpConnector(httpClient)).build();

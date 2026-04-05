@@ -51,4 +51,8 @@ public class JPAServise {
     public Optional<Token> findTokenOptional(long userId) {
         return tokenRepository.findById(userId);
     }
+
+    public void deleteTokenByUserId(long userId) {
+        tokenRepository.deleteById(userId);
+    }
 }

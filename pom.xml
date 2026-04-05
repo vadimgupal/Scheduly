@@ -20,6 +20,7 @@
     <modules>
         <module>bot</module>
         <module>core</module>
+        <module>dto</module>
     </modules>
 
     <properties>

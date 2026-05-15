@@ -39,16 +39,23 @@ public class GoogleTokenService {
     }
 
     public String getAccessTokenByUserId(long userId) {
-        return tokenStore.get(Long.toString(userId)).orElseGet(() -> requestForToken(userId));
+        log.info("[TOKEN] get by userId={}", userId);
+        return tokenStore.get(Long.toString(userId))
+                .orElseGet(() -> {
+                    log.info("[TOKEN] access token MISS, refreshing userId={}", userId);
+                    return requestForToken(userId);
+                });
     }
 
     public String getAccessTokenByChatId(long chatId) {
+        log.info("[TOKEN] get by chatId={}", chatId);
         long userId = jpa.findUserByChatId(chatId).getId();
+        log.info("[TOKEN] found userId={} for chatId={}", userId, chatId);
         try {
             return getAccessTokenByUserId(userId);
         } catch (TokenExchangeException e) {
             if (e.isInvalidGrant()) {
-                log.warn("Refresh token invalid_grant for userId={} chatId={}. Clearing token and asking reauth.", userId, chatId);
+                log.warn("[TOKEN] Refresh token invalid_grant for userId={} chatId={}. Clearing token and asking reauth.", userId, chatId);
 
                 // 1) удаляем refresh token из БД, чтобы не падать бесконечно
                 jpa.deleteTokenByUserId(userId);

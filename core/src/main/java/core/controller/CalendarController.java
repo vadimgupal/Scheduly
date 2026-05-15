@@ -40,7 +40,7 @@ public class CalendarController {
         }
     }
 
-    @GetMapping("list")
+    @GetMapping("/list")
     public ResponseEntity<List<CalendarListItemDto>> listCalendars(@RequestParam long chatId) {
         log.info("[CAL_LIST] requesting calendars for chatId={}", chatId);
         try {

@@ -1,9 +1,9 @@
-package bot.commands.calendar.insert;
+package bot.commands.calendar.action;
 
 import bot.commands.CommandHandler;
-import bot.commands.calendar.CalendarFlowMode;
-import bot.commands.calendar.CalendarState;
-import bot.commands.calendar.CalendarStateStore;
+import bot.commands.calendar.state.CalendarFlowMode;
+import bot.commands.calendar.state.CalendarState;
+import bot.commands.calendar.state.CalendarStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;

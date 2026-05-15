@@ -1,4 +1,4 @@
-package bot.commands.calendar;
+package bot.commands.calendar.action;
 
 import bot.commands.CommandHandler;
 import bot.dto.UserMessage;

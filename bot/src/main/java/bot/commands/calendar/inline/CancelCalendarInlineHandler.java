@@ -1,6 +1,7 @@
-package bot.commands.calendar;
+package bot.commands.calendar.inline;
 
 import bot.commands.MessageHandler;
+import bot.commands.calendar.state.CalendarStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;

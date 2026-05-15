@@ -1,6 +1,8 @@
-package bot.commands.calendar;
+package bot.commands.calendar.inline;
 
 import bot.commands.MessageHandler;
+import bot.commands.calendar.state.CalendarState;
+import bot.commands.calendar.state.CalendarStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
@@ -42,7 +44,7 @@ public class SelectCalendarInlineHandler implements MessageHandler {
                 .orElseThrow(() -> new RuntimeException("Не удалось найти календарь"));
 
         stateStore.putTarget(msg.chatId(), calendarId);
-        stateStore.putMode(msg.chatId(), CalendarFlowMode.UPDATE);
+
         stateStore.putState(msg.chatId(), CalendarState.CREATE_CALENDAR_NAME);
 
         if (msg.callbackQueryId() != null) {

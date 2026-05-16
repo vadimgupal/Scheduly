@@ -1,9 +1,14 @@
 package core.jpa;
 
+import dto.TaskCreateRequest;
+import dto.TaskDto;
+import dto.TaskUpdateRequest;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -54,5 +59,54 @@ public class JPAServise {
 
     public void deleteTokenByUserId(long userId) {
         tokenRepository.deleteById(userId);
+    }
+
+    @Transactional
+    public Task saveUserTask(long chatId, String description, int priority, OffsetDateTime deadline) {
+        User user = findUserByChatId(chatId);
+
+        Task task = new Task();
+        task.setUser(user);
+        task.setDescription(description);
+        task.setPriority(priority);
+        task.setDeadline(deadline);
+
+        return taskRepository.save(task);
+    }
+
+    public List<Task> findTasksByChatId(long chatId) {
+        User user = findUserByChatId(chatId);
+
+        return taskRepository.findAllByUserOrderByDeadlineAsc(user);
+    }
+
+    @Transactional
+    public Task updateUserTask(long chatId,
+                               long taskId,
+                               String description,
+                               Integer priority,
+                               OffsetDateTime deadline) {
+        User user = findUserByChatId(chatId);
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        if (task.getUser().getId() != user.getId()) {
+                throw new RuntimeException("Access denied");
+        }
+
+        if (description != null && !description.isBlank()) {
+            task.setDescription(description);
+        }
+
+        if (priority != null) {
+            task.setPriority(priority);
+        }
+
+        if (deadline != null) {
+            task.setDeadline(deadline);
+        }
+
+        return taskRepository.save(task);
     }
 }

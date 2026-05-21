@@ -79,4 +79,29 @@ public class CalendarController {
             return ResponseEntity.status(500).body("server_error");
         }
     }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteCalendar(
+            @RequestParam long chatId,
+            @RequestParam String calendarId
+    ) {
+        try {
+            String token = tokenService.getAccessTokenByChatId(chatId);
+
+            webClient.delete()
+                    .uri("https://www.googleapis.com/calendar/v3/calendars/{calendarId}",
+                            calendarId)
+                    .headers(h -> h.setBearerAuth(token))
+                    .retrieve()
+                    .bodyToMono(Void.class)
+                    .block();
+
+            return ResponseEntity.ok("deleted");
+
+        } catch (Exception e) {
+            log.error("[CAL_DELETE] failed chatId={} calendarId={}",
+                    chatId, calendarId, e);
+            return ResponseEntity.status(500).body("server_error");
+        }
+    }
 }

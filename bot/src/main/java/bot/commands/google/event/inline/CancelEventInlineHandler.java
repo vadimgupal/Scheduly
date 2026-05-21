@@ -1,7 +1,7 @@
-package bot.commands.calendar.inline;
+package bot.commands.google.event.inline;
 
 import bot.commands.MessageHandler;
-import bot.commands.calendar.state.CalendarStateStore;
+import bot.commands.google.event.state.EventStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
@@ -10,22 +10,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CancelCalendarInlineHandler implements MessageHandler {
-
+public class CancelEventInlineHandler implements MessageHandler {
     @Autowired
-    private CalendarStateStore stateStore;
+    private EventStateStore stateStore;
 
     @Autowired
     private TelegramBot bot;
 
     @Override
     public boolean shouldBeHandled(UserMessage msg) {
-        return msg.isCallback() && "CALENDAR:CANCEL".equals(msg.message());
+        return msg.isCallback() && "EVENT:CANCEL".equals(msg.message());
     }
 
     @Override
     public String name() {
-        return "Cancel create calendar";
+        return "Cancel create event";
     }
 
     @Override
@@ -36,6 +35,6 @@ public class CancelCalendarInlineHandler implements MessageHandler {
             bot.execute(new AnswerCallbackQuery(msg.callbackQueryId()).text("Отменено"));
         }
 
-        bot.execute(new SendMessage(msg.chatId(), "❌ Создание календаря отменено"));
+        bot.execute(new SendMessage(msg.chatId(), "❌ Создание события отменено"));
     }
 }

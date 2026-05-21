@@ -1,10 +1,12 @@
-package bot.commands.event.inline;
+package bot.commands.google.event.inline;
 
 import bot.commands.MessageHandler;
-import bot.commands.event.state.EventState;
-import bot.commands.event.state.EventStateStore;
+import bot.commands.google.event.state.EventState;
+import bot.commands.google.event.state.EventStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +55,14 @@ public class SelectEventInlineHandler implements MessageHandler {
         stateStore.putState(msg.chatId(), EventState.EVENT_SUMMARY);
 
         bot.execute(new SendMessage(msg.chatId(),
-                "Введите новое название события"));
+                "Введите новое название события").replyMarkup(cancelMarkup()));
 
         log.info("[EV_UPDATE] selected eventId={}", eventId);
+    }
+
+    private InlineKeyboardMarkup cancelMarkup() {
+        return new InlineKeyboardMarkup(
+                new InlineKeyboardButton("❌ Отмена").callbackData("EVENT:CANCEL")
+        );
     }
 }

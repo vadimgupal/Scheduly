@@ -1,4 +1,4 @@
-package bot.commands.calendar.action;
+package bot.commands.google.calendar.action;
 
 import bot.commands.CommandHandler;
 import bot.dto.UserMessage;

@@ -1,4 +1,4 @@
-package bot.commands.event.state;
+package bot.commands.google.event.state;
 
 import bot.redis.RedisStore;
 import org.springframework.beans.factory.annotation.Autowired;

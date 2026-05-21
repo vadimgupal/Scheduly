@@ -1,8 +1,8 @@
-package bot.commands.calendar.inline;
+package bot.commands.google.calendar.inline;
 
 import bot.commands.MessageHandler;
-import bot.commands.calendar.state.CalendarState;
-import bot.commands.calendar.state.CalendarStateStore;
+import bot.commands.google.calendar.state.CalendarState;
+import bot.commands.google.calendar.state.CalendarStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;

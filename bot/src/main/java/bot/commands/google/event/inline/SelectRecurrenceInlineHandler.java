@@ -1,10 +1,10 @@
-package bot.commands.event.inline;
+package bot.commands.google.event.inline;
 
 import bot.commands.MessageHandler;
-import bot.commands.event.service.EventFinishService;
-import bot.commands.event.state.EventFlowMode;
-import bot.commands.event.state.EventState;
-import bot.commands.event.state.EventStateStore;
+import bot.commands.google.event.service.EventFinishService;
+import bot.commands.google.event.state.EventFlowMode;
+import bot.commands.google.event.state.EventState;
+import bot.commands.google.event.state.EventStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;

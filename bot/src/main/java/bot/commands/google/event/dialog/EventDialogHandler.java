@@ -1,9 +1,9 @@
-package bot.commands.event.dialog;
+package bot.commands.google.event.dialog;
 
 import bot.commands.MessageHandler;
-import bot.commands.event.state.EventFlowMode;
-import bot.commands.event.state.EventState;
-import bot.commands.event.state.EventStateStore;
+import bot.commands.google.event.state.EventFlowMode;
+import bot.commands.google.event.state.EventState;
+import bot.commands.google.event.state.EventStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;

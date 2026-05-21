@@ -1,9 +1,9 @@
-package bot.commands.event.action;
+package bot.commands.google.event.action;
 
 import bot.commands.CommandHandler;
-import bot.commands.event.state.EventFlowMode;
-import bot.commands.event.state.EventState;
-import bot.commands.event.state.EventStateStore;
+import bot.commands.google.event.state.EventFlowMode;
+import bot.commands.google.event.state.EventState;
+import bot.commands.google.event.state.EventStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
@@ -20,8 +20,7 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class CreateEventCommand implements CommandHandler {
-
+public class UpdateEventCommand implements CommandHandler {
     @Autowired
     private TelegramBot bot;
 
@@ -34,18 +33,18 @@ public class CreateEventCommand implements CommandHandler {
 
     @Override
     public String command() {
-        return "createEvent";
+        return "updateEvent";
     }
 
     @Override
     public String name() {
-        return "Command to create event";
+        return "Command to update event";
     }
 
     @Override
     public void handle(UserMessage msg) {
 
-        log.info("[EV_CREATE] /createEvent chatId={} username={}", msg.chatId(), msg.username());
+        log.info("[EV_UPDATE] /updateEvent chatId={} username={}", msg.chatId(), msg.username());
 
         List<CalendarListItemDto> calendars = webClient.get()
                 .uri(b -> b.path("/calendar/list")
@@ -63,12 +62,12 @@ public class CreateEventCommand implements CommandHandler {
         }
 
         redis.putState(msg.chatId(), EventState.SELECT_CALENDAR);
-        redis.putMode(msg.chatId(), EventFlowMode.CREATE);
+        redis.putMode(msg.chatId(), EventFlowMode.UPDATE);
 
         InlineKeyboardMarkup kb = buildCalendarKeyboard(msg.chatId(), calendars);
 
         bot.execute(new SendMessage(msg.chatId(),
-                "Выберите календарь для создания события:")
+                "Выберите календарь для обновления события:")
                 .replyMarkup(kb));
     }
 

@@ -1,4 +1,4 @@
-package bot.commands.event.state;
+package bot.commands.google.event.state;
 
 public enum EventState {
     NONE,

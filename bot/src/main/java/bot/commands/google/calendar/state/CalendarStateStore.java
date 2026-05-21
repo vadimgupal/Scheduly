@@ -1,4 +1,4 @@
-package bot.commands.calendar.state;
+package bot.commands.google.calendar.state;
 
 import bot.redis.RedisStore;
 import org.springframework.beans.factory.annotation.Autowired;

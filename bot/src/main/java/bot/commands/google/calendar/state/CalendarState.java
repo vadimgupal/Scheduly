@@ -1,4 +1,4 @@
-package bot.commands.calendar.state;
+package bot.commands.google.calendar.state;
 
 public enum CalendarState {
     NONE,

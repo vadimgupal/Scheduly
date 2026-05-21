@@ -1,7 +1,7 @@
-package bot.commands.event.service;
+package bot.commands.google.event.service;
 
-import bot.commands.event.state.EventFlowMode;
-import bot.commands.event.state.EventStateStore;
+import bot.commands.google.event.state.EventFlowMode;
+import bot.commands.google.event.state.EventStateStore;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendMessage;
 import dto.Event;
@@ -69,7 +69,7 @@ public class EventFinishService {
                         .orElseThrow(() -> new RuntimeException("Нет события"));
 
                 webClient.put()
-                        .uri(b -> b.path("/events/update")
+                        .uri(b -> b.path("/event/update")
                                 .queryParam("chatId", chatId)
                                 .queryParam("calendarId", calendarId)
                                 .queryParam("eventId", eventId)

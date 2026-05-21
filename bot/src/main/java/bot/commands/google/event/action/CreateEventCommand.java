@@ -1,9 +1,9 @@
-package bot.commands.event.action;
+package bot.commands.google.event.action;
 
 import bot.commands.CommandHandler;
-import bot.commands.event.state.EventFlowMode;
-import bot.commands.event.state.EventState;
-import bot.commands.event.state.EventStateStore;
+import bot.commands.google.event.state.EventFlowMode;
+import bot.commands.google.event.state.EventState;
+import bot.commands.google.event.state.EventStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
@@ -20,12 +20,13 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class GetEventsCommand implements CommandHandler {
+public class CreateEventCommand implements CommandHandler {
+
     @Autowired
     private TelegramBot bot;
 
     @Autowired
-    private EventStateStore stateStore;
+    private EventStateStore redis;
 
     @Qualifier("coreWebClient")
     @Autowired
@@ -33,17 +34,18 @@ public class GetEventsCommand implements CommandHandler {
 
     @Override
     public String command() {
-        return "getEvents";
+        return "createEvent";
     }
 
     @Override
     public String name() {
-        return "Command for get events";
+        return "Command to create event";
     }
 
     @Override
     public void handle(UserMessage msg) {
-        log.info("[EV_VIEW] /getEvents chatId={}", msg.chatId());
+
+        log.info("[EV_CREATE] /createEvent chatId={} username={}", msg.chatId(), msg.username());
 
         List<CalendarListItemDto> calendars = webClient.get()
                 .uri(b -> b.path("/calendar/list")
@@ -55,19 +57,23 @@ public class GetEventsCommand implements CommandHandler {
                 .block();
 
         if (calendars == null || calendars.isEmpty()) {
-            bot.execute(new SendMessage(msg.chatId(), "У тебя нет календарей"));
+            bot.execute(new SendMessage(msg.chatId(),
+                    "У тебя нет календарей. Сначала создай календарь через /createCalendar"));
             return;
         }
 
-        stateStore.putState(msg.chatId(), EventState.SELECT_CALENDAR);
-        stateStore.putMode(msg.chatId(), EventFlowMode.VIEW);
+        redis.putState(msg.chatId(), EventState.SELECT_CALENDAR);
+        redis.putMode(msg.chatId(), EventFlowMode.CREATE);
 
         InlineKeyboardMarkup kb = buildCalendarKeyboard(msg.chatId(), calendars);
 
-        bot.execute(new SendMessage(msg.chatId(), "Выберите календарь:").replyMarkup(kb));
+        bot.execute(new SendMessage(msg.chatId(),
+                "Выберите календарь для создания события:")
+                .replyMarkup(kb));
     }
 
-    private InlineKeyboardMarkup buildCalendarKeyboard (long chatId, List<CalendarListItemDto> calendars) {
+    private InlineKeyboardMarkup buildCalendarKeyboard(long chatId,
+                                                       List<CalendarListItemDto> calendars) {
 
         InlineKeyboardMarkup kb = new InlineKeyboardMarkup();
 
@@ -75,7 +81,7 @@ public class GetEventsCommand implements CommandHandler {
 
             CalendarListItemDto calendar = calendars.get(i);
 
-            stateStore.putOption(chatId, i, calendar.id());
+            redis.putOption(chatId, i, calendar.id());
 
             kb.addRow(
                     new InlineKeyboardButton(calendar.summary())

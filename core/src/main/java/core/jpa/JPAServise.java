@@ -109,4 +109,18 @@ public class JPAServise {
 
         return taskRepository.save(task);
     }
+
+    @Transactional
+    public void deleteUserTask(long chatId, long taskId) {
+        User user = findUserByChatId(chatId);
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        if (task.getUser().getId() != user.getId()) {
+            throw new RuntimeException("Access denied");
+        }
+
+        taskRepository.delete(task);
+    }
 }

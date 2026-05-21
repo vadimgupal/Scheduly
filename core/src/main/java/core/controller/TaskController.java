@@ -85,6 +85,20 @@ public class TaskController {
         }
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteTask(
+            @RequestParam long chatId,
+            @RequestParam long taskId
+    ) {
+        try {
+            jpaServise.deleteUserTask(chatId, taskId);
+            return ResponseEntity.ok("deleted");
+        } catch (Exception e) {
+            log.error("[TASK_DELETE] failed chatId={} taskId={}", chatId, taskId, e);
+            return ResponseEntity.status(500).body("server_error");
+        }
+    }
+
     private TaskDto toDto(Task task) {
         return new TaskDto(
                 task.getId(),

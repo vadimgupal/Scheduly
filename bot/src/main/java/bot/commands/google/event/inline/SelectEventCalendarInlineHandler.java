@@ -1,9 +1,9 @@
-package bot.commands.event.inline;
+package bot.commands.google.event.inline;
 
 import bot.commands.MessageHandler;
-import bot.commands.event.state.EventFlowMode;
-import bot.commands.event.state.EventState;
-import bot.commands.event.state.EventStateStore;
+import bot.commands.google.event.state.EventFlowMode;
+import bot.commands.google.event.state.EventState;
+import bot.commands.google.event.state.EventStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
@@ -100,6 +100,22 @@ public class SelectEventCalendarInlineHandler implements MessageHandler {
                 bot.execute(new SendMessage(msg.chatId(), buildStringListEvents(events)));
 
                 stateStore.clear(msg.chatId());
+            } else if (mode == EventFlowMode.DELETE) {
+                stateStore.putState(msg.chatId(), EventState.SELECT_EVENT);
+
+                List<EventListItemDto> events = getEvents(msg, calendarId);
+
+                if (events == null || events.isEmpty()) {
+                    bot.execute(new SendMessage(msg.chatId(), "В этом календаре нет событий"));
+                    stateStore.clear(msg.chatId());
+                    return;
+                }
+
+                InlineKeyboardMarkup kb = buildEventDeleteKeyboard(msg, events);
+
+                bot.execute(new SendMessage(msg.chatId(),
+                        "Выберите событие для удаления:")
+                        .replyMarkup(kb));
             }
 
             if (msg.callbackQueryId() != null) {
@@ -173,5 +189,23 @@ public class SelectEventCalendarInlineHandler implements MessageHandler {
         }
 
         return sb.toString();
+    }
+
+    private InlineKeyboardMarkup buildEventDeleteKeyboard(UserMessage msg, List<EventListItemDto> events) {
+        InlineKeyboardMarkup kb = new InlineKeyboardMarkup();
+
+        for (int i = 0; i < events.size(); i++) {
+            EventListItemDto event = events.get(i);
+
+            stateStore.putOption(msg.chatId(), i, event.id());
+
+            kb.addRow(new InlineKeyboardButton(event.name())
+                    .callbackData("EVENT:DELETE_EVENT:" + i));
+        }
+
+        kb.addRow(new InlineKeyboardButton("❌ Отмена")
+                .callbackData("EVENT:CANCEL"));
+
+        return kb;
     }
 }

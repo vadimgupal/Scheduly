@@ -1,7 +1,7 @@
 package core.google;
 
-import core.DTO.RefreshTokenResponse;
-import core.DTO.TokenExchangeException;
+import core.dto.RefreshTokenResponse;
+import core.dto.TokenExchangeException;
 import core.configs.CoreConfig;
 import core.jpa.JPAServise;
 import core.jpa.Token;

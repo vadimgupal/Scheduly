@@ -1,6 +1,6 @@
 package core.controller;
 
-import core.DTO.GoogleCalendarListResponse;
+import core.dto.GoogleCalendarListResponse;
 import core.google.GoogleTokenService;
 import dto.Calendar;
 import dto.CalendarListItemDto;

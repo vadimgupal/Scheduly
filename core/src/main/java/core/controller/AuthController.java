@@ -1,8 +1,8 @@
 package core.controller;
 
-import core.DTO.TokenExchangeException;
+import core.dto.TokenExchangeException;
 import core.configs.CoreConfig;
-import core.DTO.TokensResponse;
+import core.dto.TokensResponse;
 import core.google.AccessTokenStore;
 import core.google.GoogleOAuthService;
 import core.google.OAuthStateStore;

@@ -10,6 +10,8 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import dto.CalendarListItemDto;
+import dto.DefaultCalendarDto;
+import dto.EventListItemDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,6 +46,32 @@ public class DeleteEventCommand implements CommandHandler {
 
     @Override
     public void handle(UserMessage msg) {
+        DefaultCalendarDto calendar = getDefaultCalendar(msg.chatId());
+
+        if (calendar != null) {
+            stateStore.clear(msg.chatId());
+
+            stateStore.putMode(msg.chatId(), EventFlowMode.DELETE);
+            stateStore.putTargetCalendar(msg.chatId(), calendar.id());
+            stateStore.putState(msg.chatId(), EventState.SELECT_EVENT);
+
+            List<EventListItemDto> events = getEvents(msg.chatId(), calendar.id());
+
+            if (events == null || events.isEmpty()) {
+                bot.execute(new SendMessage(msg.chatId(),
+                        "В календаре по умолчанию \"" + calendar.summary() + "\" нет событий"));
+                stateStore.clear(msg.chatId());
+                return;
+            }
+
+            bot.execute(new SendMessage(msg.chatId(),
+                    "Использую календарь по умолчанию: " + calendar.summary()
+                            + "\nВыберите событие для удаления:")
+                    .replyMarkup(buildEventDeleteKeyboard(msg.chatId(), events)));
+
+            return;
+        }
+
         try {
             List<CalendarListItemDto> calendars = webClient.get()
                     .uri(b -> b.path("/calendar/list")
@@ -63,19 +91,7 @@ public class DeleteEventCommand implements CommandHandler {
             stateStore.putMode(msg.chatId(), EventFlowMode.DELETE);
             stateStore.putState(msg.chatId(), EventState.SELECT_CALENDAR);
 
-            InlineKeyboardMarkup kb = new InlineKeyboardMarkup();
-
-            for (int i = 0; i < calendars.size(); i++) {
-                CalendarListItemDto calendar = calendars.get(i);
-
-                stateStore.putOption(msg.chatId(), i, calendar.id());
-
-                kb.addRow(new InlineKeyboardButton(calendar.summary())
-                        .callbackData("EVENT:SELECT_CALENDAR:" + i));
-            }
-
-            kb.addRow(new InlineKeyboardButton("❌ Отмена")
-                    .callbackData("EVENT:CANCEL"));
+            InlineKeyboardMarkup kb = buildMapKeyboard(msg, calendars);
 
             bot.execute(new SendMessage(msg.chatId(),
                     "Выберите календарь, из которого нужно удалить событие:")
@@ -86,5 +102,67 @@ public class DeleteEventCommand implements CommandHandler {
             bot.execute(new SendMessage(msg.chatId(),
                     "Не удалось получить список календарей"));
         }
+    }
+
+    private InlineKeyboardMarkup buildEventDeleteKeyboard(long chatId, List<EventListItemDto> events) {
+        InlineKeyboardMarkup kb = new InlineKeyboardMarkup();
+
+        for (int i = 0; i < events.size(); i++) {
+            EventListItemDto event = events.get(i);
+
+            stateStore.putOption(chatId, i, event.id());
+
+            kb.addRow(new InlineKeyboardButton(event.name())
+                    .callbackData("EVENT:DELETE_EVENT:" + i));
+        }
+
+        kb.addRow(new InlineKeyboardButton("❌ Отмена")
+                .callbackData("EVENT:CANCEL"));
+
+        return kb;
+    }
+
+    private DefaultCalendarDto getDefaultCalendar(long chatId) {
+        try {
+            return webClient.get()
+                    .uri(b -> b.path("/calendar/default/get")
+                            .queryParam("chatId", chatId)
+                            .build())
+                    .retrieve()
+                    .bodyToMono(DefaultCalendarDto.class)
+                    .block();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private InlineKeyboardMarkup buildMapKeyboard(UserMessage msg, List<CalendarListItemDto> calendars) {
+        InlineKeyboardMarkup kb = new InlineKeyboardMarkup();
+
+        for (int i = 0; i < calendars.size(); i++) {
+            CalendarListItemDto calendar = calendars.get(i);
+
+            stateStore.putOption(msg.chatId(), i, calendar.id());
+
+            kb.addRow(new InlineKeyboardButton(calendar.summary())
+                    .callbackData("EVENT:SELECT_CALENDAR:" + i));
+        }
+
+        kb.addRow(new InlineKeyboardButton("❌ Отмена")
+                .callbackData("EVENT:CANCEL"));
+
+        return kb;
+    }
+
+    private List<EventListItemDto> getEvents(long chatId, String calendarId) {
+        return webClient.get()
+                .uri(b -> b.path("/event/list")
+                        .queryParam("chatId", chatId)
+                        .queryParam("calendarId", calendarId)
+                        .build())
+                .retrieve()
+                .bodyToFlux(EventListItemDto.class)
+                .collectList()
+                .block();
     }
 }

@@ -1,7 +1,7 @@
-package bot.commands.google.calendar.inline;
+package bot.commands.settings.inline;
 
 import bot.commands.MessageHandler;
-import bot.commands.google.calendar.state.CalendarStateStore;
+import bot.commands.settings.state.TimezoneStateStore;
 import bot.dto.UserMessage;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.AnswerCallbackQuery;
@@ -10,22 +10,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CancelCalendarInlineHandler implements MessageHandler {
+public class CancelTimezoneInlineHandler implements MessageHandler {
 
     @Autowired
-    private CalendarStateStore stateStore;
+    private TimezoneStateStore stateStore;
 
     @Autowired
     private TelegramBot bot;
 
     @Override
-    public boolean shouldBeHandled(UserMessage msg) {
-        return msg.isCallback() && "CALENDAR:CANCEL".equals(msg.message());
+    public String name() {
+        return "Cancel timezone";
     }
 
     @Override
-    public String name() {
-        return "Cancel create calendar";
+    public boolean shouldBeHandled(UserMessage msg) {
+        return msg.isCallback()
+                && "TIMEZONE:CANCEL".equals(msg.message());
     }
 
     @Override
@@ -36,6 +37,7 @@ public class CancelCalendarInlineHandler implements MessageHandler {
             bot.execute(new AnswerCallbackQuery(msg.callbackQueryId()).text("Отменено"));
         }
 
-        bot.execute(new SendMessage(msg.chatId(), "❌Отменено действие с календарем"));
+        bot.execute(new SendMessage(msg.chatId(),
+                "❌ Настройка timezone отменена"));
     }
 }

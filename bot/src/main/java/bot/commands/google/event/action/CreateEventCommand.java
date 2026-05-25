@@ -10,6 +10,7 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 import dto.CalendarListItemDto;
+import dto.DefaultCalendarDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,8 +45,24 @@ public class CreateEventCommand implements CommandHandler {
 
     @Override
     public void handle(UserMessage msg) {
-
         log.info("[EV_CREATE] /createEvent chatId={} username={}", msg.chatId(), msg.username());
+
+        DefaultCalendarDto calendar = getDefaultCalendar(msg.chatId());
+
+        if (calendar != null) {
+            redis.clear(msg.chatId());
+
+            redis.putMode(msg.chatId(), EventFlowMode.CREATE);
+            redis.putTargetCalendar(msg.chatId(), calendar.id());
+            redis.putState(msg.chatId(), EventState.EVENT_SUMMARY);
+
+            bot.execute(new SendMessage(msg.chatId(),
+                    "Использую календарь по умолчанию: " + calendar.summary() +
+                            "\nВведите название события")
+                    .replyMarkup(cancelMarkup()));
+
+            return;
+        }
 
         List<CalendarListItemDto> calendars = webClient.get()
                 .uri(b -> b.path("/calendar/list")
@@ -95,5 +112,25 @@ public class CreateEventCommand implements CommandHandler {
         );
 
         return kb;
+    }
+
+    private InlineKeyboardMarkup cancelMarkup() {
+        return new InlineKeyboardMarkup(
+                new InlineKeyboardButton("❌ Отмена").callbackData("EVENT:CANCEL")
+        );
+    }
+
+    private DefaultCalendarDto getDefaultCalendar(long chatId) {
+        try {
+            return webClient.get()
+                    .uri(b -> b.path("/calendar/default/get")
+                            .queryParam("chatId", chatId)
+                            .build())
+                    .retrieve()
+                    .bodyToMono(DefaultCalendarDto.class)
+                    .block();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

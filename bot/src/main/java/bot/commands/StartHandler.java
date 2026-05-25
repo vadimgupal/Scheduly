@@ -36,8 +36,9 @@ public class StartHandler implements CommandHandler {
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup(
                 new InlineKeyboardButton("Авторизироваться в Google").url(url));
+        String message = "Привет "+msg.username() + "! Для использования данного бота необходимо авторизироваться в Google. Для получения информации о возможностях бота напиши /help";
         bot.execute(new SendMessage(msg.chatId(),
-                msg.message()).replyMarkup(inlineKeyboardMarkup));
+                message).replyMarkup(inlineKeyboardMarkup));
     }
 
     @Override

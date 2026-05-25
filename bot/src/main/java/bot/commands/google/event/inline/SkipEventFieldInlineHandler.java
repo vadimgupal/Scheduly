@@ -96,19 +96,26 @@ public class SkipEventFieldInlineHandler implements MessageHandler {
     }
 
     private InlineKeyboardMarkup recurrenceMarkup() {
-        return new InlineKeyboardMarkup(
-                new InlineKeyboardButton("Без повтора")
-                        .callbackData("EVENT:RECURRENCE:NONE"),
-                new InlineKeyboardButton("Каждый день")
-                        .callbackData("EVENT:RECURRENCE:DAILY"),
-                new InlineKeyboardButton("Каждую неделю")
-                        .callbackData("EVENT:RECURRENCE:WEEKLY"),
-                new InlineKeyboardButton("Каждый месяц")
-                        .callbackData("EVENT:RECURRENCE:MONTHLY"),
-                new InlineKeyboardButton("Каждый год")
-                        .callbackData("EVENT:RECURRENCE:YEARLY"),
-                new InlineKeyboardButton("❌ Отмена")
-                        .callbackData("EVENT:CANCEL")
-        );
+        InlineKeyboardMarkup kb = new InlineKeyboardMarkup();
+
+        kb.addRow(new InlineKeyboardButton("Без повтора")
+                .callbackData("EVENT:RECURRENCE:NONE"));
+
+        kb.addRow(new InlineKeyboardButton("Каждый день")
+                .callbackData("EVENT:RECURRENCE:DAILY"));
+
+        kb.addRow(new InlineKeyboardButton("Каждую неделю")
+                .callbackData("EVENT:RECURRENCE:WEEKLY"));
+
+        kb.addRow(new InlineKeyboardButton("Каждый месяц")
+                .callbackData("EVENT:RECURRENCE:MONTHLY"));
+
+        kb.addRow(new InlineKeyboardButton("Каждый год")
+                .callbackData("EVENT:RECURRENCE:YEARLY"));
+
+        kb.addRow(new InlineKeyboardButton("❌ Отмена")
+                .callbackData("EVENT:CANCEL"));
+
+        return kb;
     }
 }

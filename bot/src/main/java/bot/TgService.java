@@ -75,8 +75,11 @@ public class TgService {
     }
 
     private void dispatch(UserMessage userMessage) {
+        boolean handled = false;
+
         for (MessageHandler handler : messageHandlers) {
             if (handler.shouldBeHandled(userMessage)) {
+                handled = true;
                 try {
                     handler.handle(userMessage);
                 } catch (Exception ex) {
@@ -86,5 +89,32 @@ public class TgService {
                 break;
             }
         }
+
+        if (!handled) {
+            handleUnknownMessage(userMessage);
+        }
+    }
+
+    private void handleUnknownMessage(UserMessage userMessage) {
+        if(userMessage.isCallback()) {
+            return;
+        }
+
+        String text = userMessage.message();
+
+        if (text != null && text.startsWith("/")) {
+            bot.execute(new SendMessage(
+                    userMessage.chatId(),
+                    "Я не знаю такую команду: " + text + "\n\n" +
+                            "Напиши /help, чтобы посмотреть список доступных команд."
+            ));
+            return;
+        }
+
+        bot.execute(new SendMessage(
+                userMessage.chatId(),
+                "Я не понял сообщение.\n\n" +
+                        "Напиши /help, чтобы посмотреть список доступных команд."
+        ));
     }
 }

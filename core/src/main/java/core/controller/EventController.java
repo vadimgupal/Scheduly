@@ -1,8 +1,10 @@
 package core.controller;
 
-import core.DTO.GoogleEventListResponse;
 import core.google.GoogleEventMapper;
 import core.google.GoogleTokenService;
+import core.jpa.JPAServise;
+import core.jpa.User;
+import core.scheduler.GoogleEventFetchService;
 import dto.Event;
 import dto.EventListItemDto;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -26,6 +30,10 @@ public class EventController {
     private GoogleTokenService tokenService;
     @Autowired
     private GoogleEventMapper eventMapper;
+    @Autowired
+    private JPAServise jpaServise;
+    @Autowired
+    private GoogleEventFetchService googleEventFetchService;
 
     @PostMapping("/create")
     public ResponseEntity<String> createEvent(@RequestParam long chatId, @RequestParam String calendarId, @RequestBody Event event) {
@@ -79,32 +87,42 @@ public class EventController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<EventListItemDto>> getEvent(@RequestParam long chatId, @RequestParam String calendarId) {
-        log.info("[CAL_LIST] requesting calendars for chatId={}", chatId);
+    public ResponseEntity<List<EventListItemDto>> getEvent(
+            @RequestParam long chatId,
+            @RequestParam String calendarId
+    ) {
+        log.info("[EV_LIST] requesting events for chatId={} calendarId={}", chatId, calendarId);
+
         try {
-            String token = tokenService.getAccessTokenByChatId(chatId);
+            User user = jpaServise.findUserByChatId(chatId);
 
-            GoogleEventListResponse res = webClient.get()
-                    .uri("https://www.googleapis.com/calendar/v3/calendars/{calendarId}/events", calendarId)
-                    .headers(h -> h.setBearerAuth(token))
-                    .retrieve()
-                    .bodyToMono(GoogleEventListResponse.class)
-                    .block();
-
-            if (res == null || res.items() == null || res.items().isEmpty()) {
+            if (user == null) {
+                log.warn("[EV_LIST] user not found chatId={}", chatId);
                 return ResponseEntity.ok(List.of());
             }
 
-            List<EventListItemDto> events = res.items().stream()
-                    .map(eventMapper::toEventListItemDto)
-                    .toList();
+            if (user.getTimeZone() == null || user.getTimeZone().isBlank()) {
+                log.warn("[EV_LIST] timezone not set chatId={}", chatId);
+                return ResponseEntity.ok(List.of());
+            }
 
-            log.info("[CAL_LIST] calendars loaded, count={}", res.items().size());
+            ZoneId zoneId = ZoneId.of(user.getTimeZone());
+
+            LocalDate from = LocalDate.now(zoneId);
+            LocalDate to = from.plusDays(30);
+
+            List<EventListItemDto> events = googleEventFetchService
+                    .getEventsForCalendarBetween(user, calendarId, from, to);
+
+            log.info("[EV_LIST] events loaded chatId={} calendarId={} count={}",
+                    chatId, calendarId, events.size());
 
             return ResponseEntity.ok(events);
+
         } catch (Exception e) {
             log.error("[EV_LIST] failed chatId={} calendarId={}",
                     chatId, calendarId, e);
+
             return ResponseEntity.status(500).body(List.of());
         }
     }

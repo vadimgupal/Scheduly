@@ -123,4 +123,50 @@ public class JPAServise {
 
         taskRepository.delete(task);
     }
+
+    @Transactional
+    public void setDefaultCalendar(long chatId, String calendarId) {
+        User user = findUserByChatId(chatId);
+        user.setDefaultCalendarId(calendarId);
+        userRepository.save(user);
+    }
+
+    public Optional<String> getDefaultCalendar(long chatId) {
+        User user = findUserByChatId(chatId);
+        return Optional.ofNullable(user.getDefaultCalendarId());
+    }
+
+    @Transactional
+    public void deleteDefaultCalendar(long chatId) {
+        User user = findUserByChatId(chatId);
+        user.setDefaultCalendarId(null);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void setUserTimeZone(long chatId, String timeZone) {
+        User user = findUserByChatId(chatId);
+        user.setTimeZone(timeZone);
+        userRepository.save(user);
+    }
+
+    public Optional<String> getUserTimeZone(long chatId) {
+        User user = findUserByChatId(chatId);
+        return Optional.ofNullable(user.getTimeZone());
+    }
+
+    @Transactional
+    public void deleteUserTimeZone(long chatId) {
+        User user = findUserByChatId(chatId);
+        user.setTimeZone(null);
+        userRepository.save(user);
+    }
+
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public List<Task> findTasksByUser(User user) {
+        return taskRepository.findAllByUser(user);
+    }
 }

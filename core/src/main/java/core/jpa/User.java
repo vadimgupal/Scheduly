@@ -17,4 +17,8 @@ public class User {
     private String username;
     @Column(name = "chat_id", nullable = false, unique = true)
     private long chatId;
+    @Column(name = "default_calendar_id")
+    private String defaultCalendarId;
+    @Column(name = "time_zone")
+    private String timeZone;
 }

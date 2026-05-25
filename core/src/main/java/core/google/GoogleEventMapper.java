@@ -1,7 +1,7 @@
 package core.google;
 
-import core.DTO.GoogleEventDateTime;
-import core.DTO.GoogleEventItem;
+import core.dto.GoogleEventDateTime;
+import core.dto.GoogleEventItem;
 import dto.Event;
 import dto.EventListItemDto;
 import org.springframework.stereotype.Component;
@@ -78,11 +78,41 @@ public class GoogleEventMapper {
                 parseGoogleDateTime(item.start()),
                 parseGoogleDateTime(item.end()),
                 item.location(),
-                null,
+                extractReminderMinutes(item.reminders()),
                 item.recurrence() == null || item.recurrence().isEmpty()
                         ? null
-                        : item.recurrence().get(0)
+                        : item.recurrence().getFirst()
         );
+    }
+
+    private Integer extractReminderMinutes(Map<String, Object> reminders) {
+        if (reminders == null) {
+            return null;
+        }
+
+        Object overridesObj = reminders.get("overrides");
+
+        if (!(overridesObj instanceof List<?> overrides) || overrides.isEmpty()) {
+            return null;
+        }
+
+        Object firstObj = overrides.getFirst();
+
+        if (!(firstObj instanceof Map<?, ?> firstReminder)) {
+            return null;
+        }
+
+        Object minutesObj = firstReminder.get("minutes");
+
+        if (minutesObj instanceof Integer minutes) {
+            return minutes;
+        }
+
+        if (minutesObj instanceof Number number) {
+            return number.intValue();
+        }
+
+        return null;
     }
 
     private LocalDateTime parseGoogleDateTime(GoogleEventDateTime value) {

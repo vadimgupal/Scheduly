@@ -35,9 +35,15 @@ public class TimezoneDialogHandler implements MessageHandler {
 
     @Override
     public boolean shouldBeHandled(UserMessage msg) {
-        if (msg.isCallback()) return false;
-        if (msg.message() == null) return false;
-        if (msg.message().startsWith("/")) return false;
+        if (msg.isCallback()) {
+            return false;
+        }
+        if (msg.message() == null) {
+            return false;
+        }
+        if (msg.message().startsWith("/")) {
+            return false;
+        }
 
         return stateStore.getState(msg.chatId())
                 .map(st -> st == TimezoneState.WAITING_TIMEZONE)

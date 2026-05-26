@@ -1,18 +1,23 @@
 package core.controller;
 
-import core.dto.TokenExchangeException;
 import core.configs.CoreConfig;
+import core.dto.TokenExchangeException;
 import core.dto.TokensResponse;
 import core.google.AccessTokenStore;
 import core.google.GoogleOAuthService;
 import core.google.OAuthStateStore;
-import core.jpa.*;
+import core.jpa.JPAServise;
+import core.jpa.User;
 import core.notification.NotificationBot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -145,9 +150,13 @@ public class AuthController {
     }
 
     private String trim(String s) {
-        if (s == null) return "";
+        if (s == null) {
+            return "";
+        }
         s = s.strip();
-        if (s.length() <= 800) return s;
+        if (s.length() <= 800) {
+            return s;
+        }
         return s.substring(0, 800) + "...";
     }
 

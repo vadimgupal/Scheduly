@@ -116,7 +116,9 @@ public class GoogleEventMapper {
     }
 
     private LocalDateTime parseGoogleDateTime(GoogleEventDateTime value) {
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
 
         if (value.dateTime() != null) {
             return OffsetDateTime.parse(value.dateTime()).toLocalDateTime();

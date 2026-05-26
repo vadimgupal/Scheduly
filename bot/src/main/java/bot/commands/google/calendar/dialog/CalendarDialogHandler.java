@@ -37,8 +37,12 @@ public class CalendarDialogHandler implements MessageHandler {
 
     @Override
     public boolean shouldBeHandled(UserMessage msg) {
-        if(msg.message().startsWith("/")) return false;
-        if (msg.isCallback()) return false;
+        if(msg.message().startsWith("/")) {
+            return false;
+        }
+        if (msg.isCallback()) {
+            return false;
+        }
 
         return stateStore.getState(msg.chatId())
                 .map(st -> st== CalendarState.CREATE_CALENDAR_NAME||
@@ -95,7 +99,9 @@ public class CalendarDialogHandler implements MessageHandler {
                             .orElseThrow(() -> new RuntimeException("Диалог истёк. Начни заново: "+ restartHint));
 
                     String[] s = draft.split("\n----\n");
-                    if (s.length != 2) throw new RuntimeException("Диалог истек. Начни заново: "+ restartHint);
+                    if (s.length != 2) {
+                        throw new RuntimeException("Диалог истек. Начни заново: "+ restartHint);
+                    }
                     ZoneId zoneId;
                     try {
                         // сначала пробуем как нормальную зону (Europe/Berlin)
@@ -185,10 +191,16 @@ public class CalendarDialogHandler implements MessageHandler {
 
     private static String toGoogleCalendarTimeZone(String input) {
         String s = input.trim().toUpperCase();
-        if (s.startsWith("UTC")) s = s.substring(3);
-        if (!s.matches("[+-]\\d{1,2}")) throw new IllegalArgumentException("Неправильный формат времени");
+        if (s.startsWith("UTC")) {
+            s = s.substring(3);
+        }
+        if (!s.matches("[+-]\\d{1,2}")) {
+            throw new IllegalArgumentException("Неправильный формат времени");
+        }
         int offset = Integer.parseInt(s);
-        if (offset < -12 || offset > 14) throw new IllegalArgumentException("Такого времени не существует");
+        if (offset < -12 || offset > 14) {
+            throw new IllegalArgumentException("Такого времени не существует");
+        }
         int inverted = -offset;
         return "Etc/GMT" + (inverted >= 0 ? "+" + inverted : inverted);
     }

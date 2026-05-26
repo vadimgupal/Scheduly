@@ -46,7 +46,9 @@ public class TgService {
                 }
 
                 var msg = update.message();
-                if (msg == null || msg.text() == null) continue;
+                if (msg == null || msg.text() == null) {
+                    continue;
+                }
                 long chatId = msg.chat().id();
                 String text = msg.text();
 

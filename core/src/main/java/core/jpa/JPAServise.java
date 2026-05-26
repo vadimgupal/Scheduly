@@ -1,8 +1,5 @@
 package core.jpa;
 
-import dto.TaskCreateRequest;
-import dto.TaskDto;
-import dto.TaskUpdateRequest;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;

@@ -109,9 +109,13 @@ public class GoogleTokenService {
     }
 
     private String trim(String s) {
-        if (s == null) return "";
+        if (s == null) {
+            return "";
+        }
         s = s.strip();
-        if (s.length() <= 800) return s;
+        if (s.length() <= 800) {
+            return s;
+        }
         return s.substring(0, 800) + "...";
     }
 

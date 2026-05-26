@@ -1,7 +1,5 @@
 package dto;
 
-import lombok.AllArgsConstructor;
-
 import java.time.LocalDateTime;
 
 public record Event (

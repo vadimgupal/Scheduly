@@ -50,8 +50,9 @@ public class GetCalendarsCommand implements CommandHandler {
     private String buildMessage(List<CalendarListItemDto> calendars) {
         StringBuilder message = new StringBuilder();
         message.append("Список ваших календарей:\n");
-        for(int i = 1; i <= calendars.size(); i++)
-            message.append(i).append(") ").append(calendars.get(i-1).summary()).append("\n");
+        for(int i = 1; i <= calendars.size(); i++) {
+            message.append(i).append(") ").append(calendars.get(i - 1).summary()).append("\n");
+        }
         return message.toString();
     }
 }

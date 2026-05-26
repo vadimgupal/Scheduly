@@ -11,5 +11,6 @@ public record CoreConfig (
     @NotEmpty String clientId,
     @NotEmpty String redirectUri,
     @NotEmpty String tokenUri,
-    @NotEmpty String clientSecret
+    @NotEmpty String clientSecret,
+    String botBaseUrl
 ){}

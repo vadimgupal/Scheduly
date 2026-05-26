@@ -4,14 +4,15 @@ app:
   redirect-uri: ${REDIRECT_URI}
   token-uri: ${TOKEN_URI}
   client-secret: ${CLIENT_SECRET}
+  bot-base-url: ${BOT_BASE_URL:http://localhost:8080}
 
 spring:
   application:
-    name: Core
+    name: core
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
   output:
     ansi:
       enabled: always
@@ -26,12 +27,12 @@ spring:
     show-sql: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5435/scrapper
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5435/scrapper}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
 
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
 
 logging:
   charset:

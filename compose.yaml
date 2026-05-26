@@ -11,11 +11,17 @@ services:
       - postgresql_data:/var/lib/postgresql/data
     networks:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d scrapper"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   liquibase:
     image: liquibase/liquibase:4.25
     depends_on:
-      - postgresql
+      postgresql:
+        condition: service_healthy
     command:
       - --changelog-file=master.xml
       - --url=jdbc:postgresql://postgresql:5432/scrapper
@@ -33,6 +39,70 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - backend
+
+  core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: core
+    image: scheduly-core:latest
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      liquibase:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5432/scrapper
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+      AUTH_URI: ${AUTH_URI}
+      CLIENT_ID: ${CLIENT_ID}
+      REDIRECT_URI: ${REDIRECT_URI}
+      TOKEN_URI: ${TOKEN_URI}
+      CLIENT_SECRET: ${CLIENT_SECRET}
+
+      BOT_BASE_URL: http://bot:8080
+    networks:
+      - backend
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE: bot
+    image: scheduly-bot:latest
+    depends_on:
+      core:
+        condition: service_started
+      redis:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+
+      TOKEN: ${TOKEN}
+
+      CORE_BASE_URL: http://core:8081
+    networks:
+      - backend
 
 networks:
   backend:

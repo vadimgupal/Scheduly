@@ -3,6 +3,7 @@ package core.configs;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -13,6 +14,9 @@ import java.time.Duration;
 
 @Configuration
 public class WebClientConfig {
+    @Autowired
+    private CoreConfig cfg;
+
     @Bean(name = "commonWebClient")
     public WebClient getWebClient() {
         HttpClient httpClient = HttpClient.create()
@@ -32,7 +36,7 @@ public class WebClientConfig {
                         conn.addHandlerLast(new ReadTimeoutHandler(30))
                                 .addHandlerLast(new WriteTimeoutHandler(30)));
         return WebClient.builder()
-                .baseUrl("http://localhost:8080")
+                .baseUrl(cfg.botBaseUrl())
                 .clientConnector(new ReactorClientHttpConnector(httpClient)).build();
     }
 }
